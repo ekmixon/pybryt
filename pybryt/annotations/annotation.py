@@ -50,20 +50,16 @@ class Annotation(ABC):
     ):
         global _ANNOTATION_COUNTER
         _ANNOTATION_COUNTER += 1
-        if name is not None:
-            self.name = name
-        else:
-            self.name = f"Annotation {_ANNOTATION_COUNTER}"
+        self.name = name if name is not None else f"Annotation {_ANNOTATION_COUNTER}"
         self.limit = limit
         self.group = group
         self.success_message = success_message
         self.failure_message = failure_message
-        
+
         self._track()
 
     def __repr__(self):
-        ret = f"pybryt.{self.__class__.__name__}"
-        return ret
+        return f"pybryt.{self.__class__.__name__}"
     
     def _track(self) -> NoReturn:
         """

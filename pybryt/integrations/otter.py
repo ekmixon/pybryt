@@ -44,14 +44,14 @@ class OtterPlugin(AbstractOtterPlugin):
             ref = ReferenceImplementation.compile(fn)
             if not isinstance(ref, list):
                 ref = [ref]
-            
+
             self._cached_refs.extend(ref)
-            
-            ref_fn = os.path.splitext(os.path.split(fn)[1])[0] + ".pkl"
+
+            ref_fn = f"{os.path.splitext(os.path.split(fn)[1])[0]}.pkl"
             agp = assignment.result / 'autograder' / ref_fn
             with open(agp, "wb+") as f:
                 dill.dump(ref, f)
-            
+
             stp = assignment.result / 'student' / ref_fn
             shutil.copy(str(agp), str(stp))
 
@@ -105,9 +105,9 @@ class OtterPlugin(AbstractOtterPlugin):
         results = stu.check(refs, group=group)
 
         correct = [r.correct for r in results]
-        
+
         report = f"PyBryt Reference Messages:\n"
-        
+
         if any(correct):
             results = [results[correct.index(True)]]
             ending = "\nREFERENCE SATISFIED"
@@ -118,7 +118,7 @@ class OtterPlugin(AbstractOtterPlugin):
         # TODO: separate mssages for separate references
         for m in itertools.chain(*(r.messages for r in results)):
             report += f"- {m}\n"
-        
+
         report += ending
 
         self._generated_report = report
@@ -151,8 +151,8 @@ class OtterPlugin(AbstractOtterPlugin):
             source = get_source(cell)
             for i in range(len(source)):
                 if f".run_plugin(\"{cls.IMPORTABLE_NAME}\"" in source[i] or \
-                        f".add_plugin_files(\"{cls.IMPORTABLE_NAME}\"" in source[i]:
-                    source[i] = "# " + source[i]
+                            f".add_plugin_files(\"{cls.IMPORTABLE_NAME}\"" in source[i]:
+                    source[i] = f"# {source[i]}"
             cell["source"] = "\n".join(source)
 
     def from_notebook(self, *ref_paths: str, group: Optional[str] = None) -> NoReturn:

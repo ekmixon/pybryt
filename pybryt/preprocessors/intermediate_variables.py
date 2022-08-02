@@ -106,9 +106,18 @@ class UnassignedVarWrapper(ast.NodeTransformer):
 
             body_child = None
             while not isinstance(curr, ast.Module):
-                if hasattr(curr.parent, "body") and not (hasattr(curr.parent, "test") and \
-                        curr.parent.test == curr) and body_child is None and \
-                        not (isinstance(curr.parent, ast.For) and curr.parent.iter == curr):
+                if (
+                    hasattr(curr.parent, "body")
+                    and (
+                        not hasattr(curr.parent, "test")
+                        or curr.parent.test != curr
+                    )
+                    and body_child is None
+                    and (
+                        not isinstance(curr.parent, ast.For)
+                        or curr.parent.iter != curr
+                    )
+                ):
                     body_child = curr
 
                 # don't perform if in a comprehension
@@ -122,12 +131,11 @@ class UnassignedVarWrapper(ast.NodeTransformer):
             try:
                 idx = curr.parent.body.index(curr)
             except ValueError:
-                if isinstance(curr.parent, ast.If):
-                    idx = curr.parent.orelse.index(curr)
-                    is_else = True
-                else: # pragma: no cover
+                if not isinstance(curr.parent, ast.If):
                     raise
 
+                idx = curr.parent.orelse.index(curr)
+                is_else = True
             curr = curr.parent
             new_assign = ast.Assign([ast.Name(vn, ast.Store())], node)
             new_assign.parent = curr

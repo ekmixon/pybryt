@@ -26,8 +26,5 @@ def check_goldbach_for_num(n, primes_set):
                 index_s = mid
                 break
             left = mid + 1
-    for i in range(0, len(primes_set) - 1):
-        if n-primes_set[i] in primes_set:
-            return True
-    return False
+    return any(n-primes_set[i] in primes_set for i in range(len(primes_set) - 1))
 

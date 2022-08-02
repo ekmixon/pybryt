@@ -104,8 +104,9 @@ def save_notebook(filename, timeout=10):
     Returns
         ``bool``: whether the notebook was saved successfully
     """
-    if get_ipython() is not None:
-        f = open(filename, "rb")
+    if get_ipython() is None:
+        return
+    with open(filename, "rb") as f:
         md5 = hashlib.md5(f.read()).hexdigest()
         start = time.time_ns()
         publish_display_data({"application/javascript": """
@@ -113,13 +114,11 @@ def save_notebook(filename, timeout=10):
                 Jupyter.notebook.save_notebook();
             }
         """})
-        
+
         curr = md5
         while curr == md5 and time.time_ns() - start <= timeout * 10**9:
             time.sleep(1)
             f.seek(0)
             curr = hashlib.md5(f.read()).hexdigest()
-        
-        f.close()
 
-        return curr != md5
+    return curr != md5

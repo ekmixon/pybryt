@@ -16,8 +16,7 @@ TRACING_VARNAME = "__PYBRYT_TRACING__"
 TRACING_FUNC = None
 
 
-def create_collector(skip_types: List[type] = [type, type(len), ModuleType, FunctionType], addl_filenames: List[str] = []) -> \
-        Tuple[List[Tuple[Any, int]], Callable[[FrameType, str, Any], Callable]]:
+def create_collector(skip_types: List[type] = [type, type(len), ModuleType, FunctionType], addl_filenames: List[str] = []) -> Tuple[List[Tuple[Any, int]], Callable[[FrameType, str, Any], Callable]]:
     """
     Creates a list to collect observed values and a trace function.
 
@@ -59,7 +58,7 @@ def create_collector(skip_types: List[type] = [type, type(len), ModuleType, Func
 
             if seen_at is None:
                 seen_at = counter[0]
-            
+
             if h not in hashes:
                 observed.append((copy(val), seen_at))
                 hashes.add(h)
@@ -84,14 +83,14 @@ def create_collector(skip_types: List[type] = [type, type(len), ModuleType, Func
         name = frame.f_code.co_filename + frame.f_code.co_name
 
         if frame.f_code.co_filename.startswith("<ipython") or frame.f_code.co_filename in addl_filenames:
-            if event == "line" or event == "return":
+            if event in {"line", "return"}:
 
                 line = linecache.getline(frame.f_code.co_filename, frame.f_lineno)
                 tokens = set("".join(char if char.isalnum() or char == '_' else "\n" for char in line).split("\n"))
                 for t in "".join(char if char.isalnum() or char == '_' or char == '.' else "\n" for char in line).split("\n"):
                     tokens.add(t)
                 tokens = sorted(tokens) # sort for stable ordering
-                
+
                 for t in tokens:
                     if "." in t:
                         try:
@@ -104,17 +103,17 @@ def create_collector(skip_types: List[type] = [type, type(len), ModuleType, Func
                         if t in frame.f_locals:
                             val = frame.f_locals[t]
                             track_value(val)
-                                
+
                         elif t in frame.f_globals:
                             val = frame.f_globals[t]
                             track_value(val)
-                
+
                 # for tracking the results of an assignment statement
                 m = re.match(r"\s*(\w+)\s=.*", line)
                 if m:
                     if name not in vars_not_found:
                         vars_not_found[name] = []
-                    vars_not_found[name].append((m.group(1), counter[0]))
+                    vars_not_found[name].append((m[1], counter[0]))
 
             if event == "return":
                 track_value(arg)

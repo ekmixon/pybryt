@@ -31,7 +31,7 @@ class ReferenceImplementation:
             raise TypeError("annotations should be a list of Annotations")
         if not all(isinstance(ann, Annotation) for ann in annotations):
             raise TypeError("Found non-annotation in annotations")
-        
+
         self.annotations = annotations
 
     def __eq__(self, other: Any) -> bool:
@@ -77,7 +77,7 @@ class ReferenceImplementation:
         with open(dest, "wb+") as f:
             dill.dump(self, f)
 
-    def run(self, observed_values: List[Tuple[Any, int]], group: Optional[str] = None) -> 'ReferenceResult':        
+    def run(self, observed_values: List[Tuple[Any, int]], group: Optional[str] = None) -> 'ReferenceResult':
         """
         Runs the annotations tracked by this reference implementation against a memory footprint.
 
@@ -95,25 +95,18 @@ class ReferenceImplementation:
             ``ValueError``: if ``group`` is specified but there are no annotations with that group
         """
         if group is not None:
-            annots = []
-            for ann in self.annotations:
-                if ann.group == group:
-                    annots.append(ann)
-            if len(annots) == 0:
+            annots = [ann for ann in self.annotations if ann.group == group]
+            if not annots:
                 raise ValueError(f"Group '{group}' not found")
-        
+
         else:
             annots = self.annotations
-        
-        results = []
-        for exp in annots:
-            results.append(exp.check(observed_values))
-        
+
+        results = [exp.check(observed_values) for exp in annots]
         return ReferenceResult(self, results, group=group)
 
     @classmethod
-    def compile(cls, path_or_nb: Union[str, nbformat.NotebookNode]) -> \
-            Union['ReferenceImplementation', List['ReferenceImplementation']]:
+    def compile(cls, path_or_nb: Union[str, nbformat.NotebookNode]) -> Union['ReferenceImplementation', List['ReferenceImplementation']]:
         """
         Compiles a notebook or Python script into a single or list of reference implementations.
 
@@ -139,24 +132,18 @@ class ReferenceImplementation:
         env = {}
         exec(source, env)
 
-        refs = []
         annots = []
-        for _, v in env.items():
-            if isinstance(v, cls):
-                refs.append(v)
-
+        refs = [v for v in env.values() if isinstance(v, cls)]
         if not refs:
-            if not Annotation.get_tracked_annotations():
-                warnings.warn(f"Could not find any reference implementations in " \
-                    f"{path_or_nb if isinstance(path_or_nb, str) else 'the provided notebook'}")
-            else:
+            if Annotation.get_tracked_annotations():
                 refs = [cls(deepcopy(Annotation.get_tracked_annotations()))]
 
+            else:
+                warnings.warn(f"Could not find any reference implementations in " \
+                        f"{path_or_nb if isinstance(path_or_nb, str) else 'the provided notebook'}")
         Annotation.reset_tracked_annotations()
-        
-        if len(refs) == 1:
-            return refs[0]
-        return refs
+
+        return refs[0] if len(refs) == 1 else refs
 
 
 class ReferenceResult:

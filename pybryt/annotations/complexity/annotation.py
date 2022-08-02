@@ -92,12 +92,11 @@ class TimeComplexity(ComplexityAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        complexity_data = {}
-        for v, ts in observed_values:
-            if not isinstance(v, TimeComplexityResult) or v.name != self.name:
-                continue
-
-            complexity_data[v.n] = v.stop - v.start
+        complexity_data = {
+            v.n: v.stop - v.start
+            for v, ts in observed_values
+            if isinstance(v, TimeComplexityResult) and v.name == self.name
+        }
 
         best_cls, best_res = None, None
         for cplx in complexities.complexity_classes:

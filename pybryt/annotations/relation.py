@@ -94,19 +94,15 @@ class BeforeAnnotation(RelationalAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        results = []
-        for ann in self._annotations:
-            results.append(ann.check(observed_values))
-
-        if all(res.satisfied for res in results):
-            before = []
-            for i in range(len(self._annotations) - 1):
-                before.append(results[i].satisfied_at < results[i + 1].satisfied_at)
-            
-            return AnnotationResult(all(before), self, children = results)
-        
-        else:
+        results = [ann.check(observed_values) for ann in self._annotations]
+        if not all(res.satisfied for res in results):
             return AnnotationResult(False, self, children = results)
+        before = [
+            results[i].satisfied_at < results[i + 1].satisfied_at
+            for i in range(len(self._annotations) - 1)
+        ]
+
+        return AnnotationResult(all(before), self, children = results)
 
 
 class AndAnnotation(RelationalAnnotation):
@@ -132,10 +128,7 @@ class AndAnnotation(RelationalAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        results = []
-        for ann in self._annotations:
-            results.append(ann.check(observed_values))
-
+        results = [ann.check(observed_values) for ann in self._annotations]
         return AnnotationResult(all(res.satisfied for res in results), self, children = results)
 
 
@@ -162,10 +155,7 @@ class OrAnnotation(RelationalAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        results = []
-        for ann in self._annotations:
-            results.append(ann.check(observed_values))
-
+        results = [ann.check(observed_values) for ann in self._annotations]
         return AnnotationResult(any(res.satisfied for res in results), self, children = results)
 
 
@@ -197,10 +187,7 @@ class XorAnnotation(RelationalAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        results = []
-        for ann in self._annotations:
-            results.append(ann.check(observed_values))
-
+        results = [ann.check(observed_values) for ann in self._annotations]
         sats = [res.satisfied for res in results]
         return AnnotationResult(sats[0] ^ sats[1], self, children = results)
 
@@ -228,8 +215,5 @@ class NotAnnotation(RelationalAnnotation):
             :py:class:`AnnotationResult`: the results of this annotation based on 
             ``observed_values``
         """
-        results = []
-        for ann in self._annotations:
-            results.append(ann.check(observed_values))
-
+        results = [ann.check(observed_values) for ann in self._annotations]
         return AnnotationResult(all(not res.satisfied for res in results), self, children = results)

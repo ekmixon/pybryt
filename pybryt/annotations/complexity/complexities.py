@@ -66,7 +66,7 @@ class complexity(ABC):
         for n, t in complexity_data.items():
             ns.append(n)
             ts.append(t)
-        
+
         n = np.array(ns, dtype=int)
         t = np.array(ts, dtype=int)
 
@@ -74,9 +74,7 @@ class complexity(ABC):
         t = cls.transform_t(t)
 
         _, resid, _, _ = np.linalg.lstsq(n, t, rcond=-1)
-        if len(resid) == 0:
-            return np.inf
-        return resid[0]
+        return np.inf if len(resid) == 0 else resid[0]
 
 
 class constant(complexity):

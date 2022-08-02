@@ -16,10 +16,7 @@ def test_name_group_limit():
     val, ts = mfp[2]
 
     Annotation.reset_tracked_annotations()
-    vs = []
-    for _ in range(100):
-        vs.append(Value(val, name="foo", limit=11))
-    
+    vs = [Value(val, name="foo", limit=11) for _ in range(100)]
     tracked = Annotation.get_tracked_annotations()
     assert len(tracked) == 11, "Too many tracked annotations"
     assert tracked == vs[:11], "Wrong tracked annotations"
@@ -81,7 +78,7 @@ def test_messages():
 
     v1 = Value(val1, success_message="m1", failure_message="m2")
     v2 = Value(val2)
-    
+
     v = v1.before(v2)
     res = v.check(mfp)
 

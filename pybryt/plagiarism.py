@@ -19,8 +19,8 @@ def create_references(student_impls: List["StudentImplementation"], frac=0.25, s
 
     values = [[t[0] for t in stu.values if t[0] is not None] for stu in student_impls]
 
-    k = int(min([len(v) for v in values]) * frac)
-    
+    k = int(min(len(v) for v in values) * frac)
+
     refs = []
     for stu, vals in zip(student_impls, values):
         ref_values = random.sample(vals, k)
@@ -42,25 +42,15 @@ def get_impl_results(ref_impl: ReferenceImplementation, student_impls: List["Stu
     #         ref_results.append(stu.check(ref))
     #     results.append(ref_results)
 
-    results = []
-    for stu in student_impls:
-        results.append(stu.check(ref_impl))
-    
-    if arr:
-        return np.array([r.to_array() for r in results])
-    else:
-        return results
+    results = [stu.check(ref_impl) for stu in student_impls]
+    return np.array([r.to_array() for r in results]) if arr else results
 
 
-def compare_implementations(student_impls: List["StudentImplementation"], **kwargs) -> \
-        List[Union[List[ReferenceResult], np.ndarray]]:
+def compare_implementations(student_impls: List["StudentImplementation"], **kwargs) -> List[Union[List[ReferenceResult], np.ndarray]]:
     """
     """
     refs = create_references(student_impls, **kwargs)
-    results = []
-    for ref in refs:
-        results.append(get_impl_results(ref, student_impls, **kwargs))
-    return results
+    return [get_impl_results(ref, student_impls, **kwargs) for ref in refs]
 
 
 from .student import StudentImplementation

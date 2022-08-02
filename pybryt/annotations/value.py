@@ -187,24 +187,20 @@ class Value(Annotation):
             ub += rtol * np.abs(value)
             lb -= rtol * np.abs(value)
             numeric = True
-        
+
         except:
             numeric = False
 
-        if numeric:
-            try:
+        try:
+            if numeric:
                 res = np.logical_and(ub >= other_value, other_value >= lb)
-            except (ValueError, TypeError) as e:
+            elif (hasattr(value, "shape") and hasattr(other_value, "shape") and value.shape != other_value.shape) \
+                            or (hasattr(value, "shape") ^ hasattr(other_value, "shape")):
                 return False
-        else:
-            try:
-                if (hasattr(value, "shape") and hasattr(other_value, "shape") and value.shape != other_value.shape) \
-                        or (hasattr(value, "shape") ^ hasattr(other_value, "shape")):
-                    return False
+            else:
                 res = value == other_value
-            except (ValueError, TypeError) as e:
-                return False
-
+        except (ValueError, TypeError) as e:
+            return False
         if isinstance(res, Iterable):
             try:
                 res = all(res)
@@ -214,10 +210,7 @@ class Value(Annotation):
                 else:
                     raise e
 
-        if res:
-            return True
-
-        return False
+        return bool(res)
 
 
 class _AttrValue(Value):
@@ -313,11 +306,11 @@ class Attribute(Annotation):
             if not hasattr(obj, attr):
                 raise AttributeError(f"{obj} has not attribute '{attr}'")
             self._annotations.append(_AttrValue(obj, attr, **kwargs))
-        
+
         self._invariants = kwargs.pop("invariants", [])
         self._atol = kwargs.pop("atol", None)
         self._rtol = kwargs.pop("rtol", None)
-    
+
         super().__init__(name=name, success_message=success_message, failure_message=failure_message,
             **kwargs)
 

@@ -22,7 +22,7 @@ def test_filter_picklable_list():
     with mock.patch("dill.dumps") as mocked_dill:
         mocked_dill.side_effect = Exception()
         filter_picklable_list(l)
-        assert len(l) == 0
+        assert not l
 
 
 def test_notebook_to_string():

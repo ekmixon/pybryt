@@ -19,7 +19,7 @@ def test_trace_function():
     """
     """
     np.random.seed(42)
-    
+
     tracked_filepath = "/path/to/tracked/file.py"
 
     frame = generate_mocked_frame("<ipython-abc123>", "foo", 3)
@@ -39,7 +39,7 @@ def test_trace_function():
     with mock.patch("dill.dumps") as mocked_dumps:
         mocked_dumps.side_effect = Exception()
         cir(frame, "return", 1)
-    
+
     assert len(observed) == 1
 
     frame = generate_mocked_frame(
@@ -107,7 +107,7 @@ def test_trace_function():
         assert len(observed) == 7
         assert np.allclose(observed[6][0], -1 * arr)
         assert observed[6][1] == 12
-    
+
     # check that IPython child frame return values are tracked
     frame = generate_mocked_frame("/path/to/file.py", "bar", 100, f_back=frame)
     cir(frame, "line", None)
